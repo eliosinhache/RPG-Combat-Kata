@@ -14,6 +14,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.assertj:assertj-core:3.19.0")
+    testImplementation("junit:junit:4.12")
+    testCompileOnly(group = "org.assertj", name = "assertj-core", version = "3.19.0")
 }
 
 tasks.test {
