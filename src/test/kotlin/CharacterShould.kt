@@ -1,6 +1,11 @@
 import Classes.Character
+import Classes.IFighter
+import Classes.MeleeFighter
+import Classes.RangedFighter
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
+import org.mockito.Mockito
+import org.mockito.kotlin.mock
 
 class CharacterShould {
     private val maxHealth = 1000
@@ -108,5 +113,62 @@ class CharacterShould {
         characterTwo.dealDamage(character, 100)
 
         assertThat(character.health).isEqualTo(850)
+    }
+
+    @Test
+    fun `Have max range`() {
+        assertThat(character.getRanged()).isNotNull
+    }
+
+    @Test
+    fun `Have range of two if it is melee fighter`() {
+        val iFighter = Mockito.mock(IFighter::class.java)
+        Mockito.`when`(iFighter.initialRange()).thenReturn(2)
+
+        character.setTypeOfFighter(iFighter)
+        assertThat(character.getRanged()).isEqualTo(2)
+    }
+
+    @Test
+    fun `Have range of two if it is ranged fighter`() {
+        val iFighter = Mockito.mock(IFighter::class.java)
+        Mockito.`when`(iFighter.initialRange()).thenReturn(20)
+
+        character.setTypeOfFighter(iFighter)
+        assertThat(character.getRanged()).isEqualTo(20)
+    }
+
+    @Test
+    fun `Deal damage if target is in range`() {
+        val characterTwo = Character()
+        characterTwo.position = 20
+        character.position = 0
+        val rangedFighter = Mockito.mock(IFighter::class.java)
+        Mockito.`when`(rangedFighter.initialRange()).thenReturn(20)
+        val meleeFighter = Mockito.mock(IFighter::class.java)
+        Mockito.`when`(meleeFighter.initialRange()).thenReturn(2)
+
+        character.setTypeOfFighter(rangedFighter)
+        characterTwo.setTypeOfFighter(meleeFighter)
+
+        character.dealDamage(characterTwo, 200)
+        characterTwo.dealDamage(character, 200)
+
+        assertThat(characterTwo.health).isEqualTo(800)
+        assertThat(character.health).isEqualTo(maxHealth)
+    }
+
+    @Test
+    fun `Not deal damage if target is not in range`() {
+        val characterTwo = Character()
+        characterTwo.position = 20
+        character.position = 0
+        val iFighter = Mockito.mock(IFighter::class.java)
+        Mockito.`when`(iFighter.initialRange()).thenReturn(2)
+        character.setTypeOfFighter(iFighter)
+
+        character.dealDamage(characterTwo, 200)
+
+        assertThat(characterTwo.health).isEqualTo(1000)
     }
 }

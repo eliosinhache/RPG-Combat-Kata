@@ -1,15 +1,20 @@
 package Classes
 
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class Character {
+open class Character {
+    var position= 1
+    var range = 1
     var alive = true
     var level = 1
     var health = 1000
+    private lateinit var fighterClass : IFighter
 
     fun dealDamage(target: Character, amount: Int) {
-        if (target == this) { return }
+        if (target == this) return
+        if (abs(target.position - this.position) > range) return
         var totalAmount = amount
         if (target.level - 5 >= this.level ) totalAmount = amount / 2
         if (target.level + 5 <= this.level) totalAmount = amount + (amount / 2)
@@ -29,5 +34,14 @@ class Character {
 
     private fun receiveHeal(amount: Int) {
         health = min(1000, health + amount)
+    }
+
+    fun setTypeOfFighter(typeOfFighter: IFighter) {
+        fighterClass = typeOfFighter
+        range = typeOfFighter.initialRange()
+    }
+
+    fun getRanged(): Int {
+        return range
     }
 }

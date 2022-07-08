@@ -17,6 +17,9 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.19.0")
     testImplementation("junit:junit:4.12")
     testCompileOnly(group = "org.assertj", name = "assertj-core", version = "3.19.0")
+
+
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
 
 tasks.test {
