@@ -1,25 +1,33 @@
 package Classes
 
+import kotlin.math.max
+import kotlin.math.min
+
 class Character {
-    var Alive = true
-    val Level = 1
-    var Health = 1000
+    var alive = true
+    var level = 1
+    var health = 1000
 
-    fun DealDamage(target: Character, amount: Int) {
-        target.ReceiveDamage(amount)
+    fun dealDamage(target: Character, amount: Int) {
+        if (target == this) { return }
+        var totalAmount = amount
+        if (target.level - 5 >= this.level ) totalAmount = amount / 2
+        if (target.level + 5 <= this.level) totalAmount = amount + (amount / 2)
+        target.receiveDamage(totalAmount)
     }
 
-    private fun ReceiveDamage(amount: Int) {
-        Health = Math.max(0, Health - amount)
-        if (Health == 0) { Alive = false }
+    private fun receiveDamage(amount: Int) {
+        health = max(0, health - amount)
+        if (health == 0) { alive = false }
     }
 
-    fun Heal(target: Character, amount: Int) {
-        if (!target.Alive) { return }
-        target.ReceiveHeal(amount)
+    fun heal(target: Character, amount: Int) {
+
+        if (!target.alive || target != this) { return }
+        target.receiveHeal(amount)
     }
 
-    private fun ReceiveHeal(amount: Int) {
-        Health = Math.min(1000, Health + amount)
+    private fun receiveHeal(amount: Int) {
+        health = min(1000, health + amount)
     }
 }

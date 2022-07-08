@@ -1,83 +1,112 @@
 import Classes.Character
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
-import kotlin.test.assertTrue
 
 class CharacterShould {
     private val maxHealth = 1000
     private val minHealth = 0
+    private val character = Character()
 
     @Test
     fun  `Start with max Health` () {
-        var character = Character()
-        assertThat(character.Health).isEqualTo(maxHealth)
+        assertThat(character.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Start with first Level` () {
-        val character = Character()
-        assertThat(character.Level).isEqualTo(1)
+        assertThat(character.level).isEqualTo(1)
     }
 
     @Test
     fun `Start Alive` () {
-        val character = Character()
-        assertThat(character.Alive).isTrue
+        assertThat(character.alive).isTrue
     }
 
     @Test
     fun `Deal damage to other character`() {
-
-        val characterOne = Character()
         val characterTwo = Character()
 
-        characterTwo.DealDamage(characterOne, 100)
+        characterTwo.dealDamage(character, 100)
 
-        assertThat(characterOne.Health).isEqualTo(900)
+        assertThat(character.health).isEqualTo(900)
     }
 
     @Test
     fun `Die when damage received exceeds current health`() {
-
-        val characterOne = Character()
         val characterTwo = Character()
 
-        characterTwo.DealDamage(characterOne, 1200)
+        characterTwo.dealDamage(character, 1200)
 
-        assertThat(characterOne.Health).isEqualTo(0)
-        assertThat(characterOne.Alive).isFalse
+        assertThat(character.health).isEqualTo(minHealth)
+        assertThat(character.alive).isFalse
     }
 
     @Test
-    fun `Heal other character`() {
-        val characterOne = Character()
+    fun `Not heal other character`() {
         val characterTwo = Character()
 
-        characterTwo.DealDamage(characterOne, 300)
-        characterTwo.Heal(characterOne, 200)
+        characterTwo.dealDamage(character, 300)
+        characterTwo.heal(character, 200)
 
-        assertThat(characterOne.Health).isEqualTo(900)
+        assertThat(character.health).isEqualTo(700)
+    }
+
+    @Test
+    fun `Heal itself`() {
+        val characterTwo = Character()
+
+        characterTwo.dealDamage(character, 300)
+        character.heal(character, 200)
+
+        assertThat(character.health).isEqualTo(900)
     }
 
     @Test
     fun `Not healed if is dead`() {
-        val characterOne = Character()
         val characterTwo = Character()
 
-        characterTwo.DealDamage(characterOne, maxHealth)
-        characterTwo.Heal(characterOne, 200)
+        characterTwo.dealDamage(character, maxHealth)
+        characterTwo.heal(character, 200)
 
-        assertThat(characterOne.Health).isEqualTo(0)
+        assertThat(character.health).isEqualTo(0)
     }
 
     @Test
     fun `Not raise health above max health`() {
-        val characterOne = Character()
         val characterTwo = Character()
 
-        characterTwo.DealDamage(characterOne, 100)
-        characterTwo.Heal(characterOne, 200)
+        characterTwo.dealDamage(character, 100)
+        character.heal(character, 200)
 
-        assertThat(characterOne.Health).isEqualTo(maxHealth)
+        assertThat(character.health).isEqualTo(maxHealth)
+    }
+
+    @Test
+    fun `Not deal damage to itself`() {
+        character.dealDamage(character, 100)
+
+        assertThat(character.health).isEqualTo(maxHealth)
+    }
+
+    @Test
+    fun `Deal 50% less damage if target are 5 levels above it`() {
+        val characterTwo = Character()
+        character.level = 10
+        characterTwo.level = 5
+
+        characterTwo.dealDamage(character, 100)
+
+        assertThat(character.health).isEqualTo(950)
+    }
+
+    @Test
+    fun `Deal 50% more damage if target are 5 levels below it`() {
+        val characterTwo = Character()
+        character.level = 5
+        characterTwo.level = 10
+
+        characterTwo.dealDamage(character, 100)
+
+        assertThat(character.health).isEqualTo(850)
     }
 }
