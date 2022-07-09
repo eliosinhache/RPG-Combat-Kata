@@ -1,16 +1,13 @@
-import Classes.Character
-import Classes.IFighter
-import Classes.MeleeFighter
-import Classes.RangedFighter
+import Classes.*
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito
-import org.mockito.kotlin.mock
 
 class CharacterShould {
     private val maxHealth = 1000
     private val minHealth = 0
     private val character = Character()
+    private val characterTwo = Character()
 
     @Test
     fun  `Start with max Health` () {
@@ -29,8 +26,6 @@ class CharacterShould {
 
     @Test
     fun `Deal damage to other character`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, 100)
 
         assertThat(character.health).isEqualTo(900)
@@ -38,8 +33,6 @@ class CharacterShould {
 
     @Test
     fun `Die when damage received exceeds current health`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, 1200)
 
         assertThat(character.health).isEqualTo(minHealth)
@@ -48,8 +41,6 @@ class CharacterShould {
 
     @Test
     fun `Not heal other character`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, 300)
         characterTwo.heal(character, 200)
 
@@ -58,8 +49,6 @@ class CharacterShould {
 
     @Test
     fun `Heal itself`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, 300)
         character.heal(character, 200)
 
@@ -68,8 +57,6 @@ class CharacterShould {
 
     @Test
     fun `Not healed if is dead`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, maxHealth)
         characterTwo.heal(character, 200)
 
@@ -78,8 +65,6 @@ class CharacterShould {
 
     @Test
     fun `Not raise health above max health`() {
-        val characterTwo = Character()
-
         characterTwo.dealDamage(character, 100)
         character.heal(character, 200)
 
@@ -95,7 +80,6 @@ class CharacterShould {
 
     @Test
     fun `Deal 50% less damage if target are 5 levels above it`() {
-        val characterTwo = Character()
         character.level = 10
         characterTwo.level = 5
 
@@ -106,7 +90,6 @@ class CharacterShould {
 
     @Test
     fun `Deal 50% more damage if target are 5 levels below it`() {
-        val characterTwo = Character()
         character.level = 5
         characterTwo.level = 10
 
@@ -130,7 +113,7 @@ class CharacterShould {
     }
 
     @Test
-    fun `Have range of two if it is ranged fighter`() {
+    fun `Have range of twenty if it is ranged fighter`() {
         val iFighter = Mockito.mock(IFighter::class.java)
         Mockito.`when`(iFighter.initialRange()).thenReturn(20)
 
@@ -140,7 +123,6 @@ class CharacterShould {
 
     @Test
     fun `Deal damage if target is in range`() {
-        val characterTwo = Character()
         characterTwo.position = 20
         character.position = 0
         val rangedFighter = Mockito.mock(IFighter::class.java)
@@ -160,7 +142,6 @@ class CharacterShould {
 
     @Test
     fun `Not deal damage if target is not in range`() {
-        val characterTwo = Character()
         characterTwo.position = 20
         character.position = 0
         val iFighter = Mockito.mock(IFighter::class.java)
@@ -170,5 +151,49 @@ class CharacterShould {
         character.dealDamage(characterTwo, 200)
 
         assertThat(characterTwo.health).isEqualTo(1000)
+    }
+
+    @Test
+    fun `Start without factions`() {
+        assertThat(character.getFactions().isEmpty()).isTrue
+    }
+
+    @Test
+    fun `Join to one or more factions`() {
+        val faction = Mockito.mock(IFaction::class.java)
+        character.joinFaction(faction)
+        assertThat(character.getFactions()).isNotNull
+    }
+    @Test
+    fun `Leave one or more factions`() {
+        val faction = Mockito.mock(IFaction::class.java)
+        character.joinFaction(faction)
+        character.leaveFaction(faction)
+        assertThat(character.getFactions().isEmpty()).isTrue
+    }
+
+    @Test
+    fun `Not deal damage yo allies`() {
+        val faction = Mockito.mock(IFaction::class.java)
+        character.joinFaction(faction)
+        characterTwo.joinFaction(faction)
+
+        character.dealDamage(characterTwo, 200)
+
+        assertThat(characterTwo.health).isEqualTo(maxHealth)
+    }
+
+    @Test
+    fun `Heal allies`() {
+        val faction = Mockito.mock(IFaction::class.java)
+        character.joinFaction(faction)
+        characterTwo.joinFaction(faction)
+
+        val enemyCharacter = Classes.Character()
+
+        enemyCharacter.dealDamage(characterTwo, 200)
+        character.heal(characterTwo, 100)
+
+        assertThat(characterTwo.health).isEqualTo(900)
     }
 }
