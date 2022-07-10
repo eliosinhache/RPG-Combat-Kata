@@ -2,6 +2,7 @@ import Classes.*
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito
+import org.mockito.kotlin.*
 
 class CharacterShould {
     private val maxHealth = 1000
@@ -195,5 +196,15 @@ class CharacterShould {
         character.heal(characterTwo, 100)
 
         assertThat(characterTwo.health).isEqualTo(900)
+    }
+
+    @Test
+    fun `Deal damage to props`() {
+        val tree = mock<Prop>()
+        whenever(tree.getTargetPosition()).thenReturn(1)
+
+        character.dealDamage(tree, 2000)
+
+        verify(tree).receiveDamage(any(), any())
     }
 }

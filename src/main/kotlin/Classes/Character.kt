@@ -4,40 +4,44 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class Character {
+open class Character : ITargetActions {
     var position= 1
-    var range = 1
     var alive = true
     var level = 1
     var health = 1000
-    private lateinit var fighterClass : IFighter
+    private var range = 1
     private var factions: MutableList<IFaction> = mutableListOf()
+    private lateinit var fighterClass : IFighter
 
-    fun dealDamage(target: Character, amount: Int) {
+    fun dealDamage(target: ITargetActions, amount: Int) {
         if (target == this) return
-        if (isTargetAllie(target)) return
-        if (abs(target.position - this.position) > range) return
-        var totalAmount = amount
-        if (target.level - 5 >= this.level ) totalAmount = amount / 2
-        if (target.level + 5 <= this.level) totalAmount = amount + (amount / 2)
-        target.receiveDamage(totalAmount)
+        if (abs(target.getTargetPosition() - this.position) > range) return
+        target.receiveDamage(this, amount)
     }
 
-    private fun isTargetAllie(target: Character): Boolean {
+    private fun isAttackerAllie(attacker: Character): Boolean {
         factions.forEach{
-            if (target.getFactions().contains(it)) return true
+            if (attacker.getFactions().contains(it)) return true
         }
         return false
     }
 
-    private fun receiveDamage(amount: Int) {
-        health = max(0, health - amount)
+    override fun receiveDamage(attacker: Character, amount: Int) {
+        if (isAttackerAllie(attacker)) return
+        var totalAmount = amount
+        if ( this.level- 5 >= attacker.level ) totalAmount = amount / 2
+        if (this.level + 5 <= attacker.level) totalAmount = amount + (amount / 2)
+        health = max(0, health - totalAmount)
         if (health == 0) { alive = false }
+    }
+
+    override fun getTargetPosition(): Int {
+        return position
     }
 
     fun heal(target: Character, amount: Int) {
         if (!target.alive) return
-        if (!isTargetAllie(target) && target != this) return
+        if (!isAttackerAllie(target) && target != this) return
         target.receiveHeal(amount)
     }
 
