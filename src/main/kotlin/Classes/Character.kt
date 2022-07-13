@@ -1,5 +1,9 @@
 package Classes
 
+import Classes.CharacterClasses.AnimalFighter
+import Classes.CharacterClasses.Explorer
+import Classes.CharacterClasses.IAnimal
+import Classes.Factions.IFaction
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -9,9 +13,10 @@ open class Character : ITargetActions {
     var alive = true
     var level = 1
     var health = 1000
+    //lateinit var characterClass : IFighter
+    private var characterClass : CharacterClass? = null
     private var range = 1
-    private var factions: MutableList<IFaction> = mutableListOf()
-    private lateinit var fighterClass : IFighter
+    private var factionGroup: IFactionGroup = FactionGroup() //MutableList<IFaction> = mutableListOf()
 
     fun dealDamage(target: ITargetActions, amount: Int) {
         if (target == this) return
@@ -19,15 +24,12 @@ open class Character : ITargetActions {
         target.receiveDamage(this, amount)
     }
 
-    private fun isAttackerAllie(attacker: Character): Boolean {
-        factions.forEach{
-            if (attacker.getFactions().contains(it)) return true
-        }
-        return false
+    fun isCharacterAllie(character: Character): Boolean {
+        return factionGroup.isCharacterAllie(character)
     }
 
     override fun receiveDamage(attacker: Character, amount: Int) {
-        if (isAttackerAllie(attacker)) return
+        if (isCharacterAllie(attacker)) return
         var totalAmount = amount
         if ( this.level- 5 >= attacker.level ) totalAmount = amount / 2
         if (this.level + 5 <= attacker.level) totalAmount = amount + (amount / 2)
@@ -41,7 +43,7 @@ open class Character : ITargetActions {
 
     fun heal(target: Character, amount: Int) {
         if (!target.alive) return
-        if (!isAttackerAllie(target) && target != this) return
+        if (!isCharacterAllie(target) && target != this) return
         target.receiveHeal(amount)
     }
 
@@ -49,9 +51,9 @@ open class Character : ITargetActions {
         health = min(1000, health + amount)
     }
 
-    fun setTypeOfFighter(typeOfFighter: IFighter) {
-        fighterClass = typeOfFighter
-        range = typeOfFighter.initialRange()
+    fun setClass(typeOfCharacter: CharacterClass) {
+        characterClass = typeOfCharacter
+        range = typeOfCharacter.initialRange()
     }
 
     fun getRanged(): Int {
@@ -59,14 +61,19 @@ open class Character : ITargetActions {
     }
 
     fun getFactions(): List<IFaction> {
-        return factions
+        return factionGroup.getAllFactions()
     }
 
     fun joinFaction(faction: IFaction) {
-        factions.add(faction)
+        factionGroup.joinToFaction(faction)
     }
 
     fun leaveFaction(faction: IFaction) {
-        factions.remove(faction)
+        factionGroup.leaveFaction(faction)
+    }
+
+    fun pet(animal: Character) {
+        if (characterClass !is Explorer) { return }
+        (animal.characterClass as AnimalFighter).petBy(this, animal)
     }
 }

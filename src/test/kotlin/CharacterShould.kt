@@ -1,4 +1,10 @@
 import Classes.*
+import Classes.CharacterClasses.AnimalFighter
+import Classes.CharacterClasses.Explorer
+import Classes.CharacterClasses.MeleeFighter
+import Classes.CharacterClasses.RangedFighter
+import Classes.Factions.IFaction
+import Classes.Factions.ScarFaceFaction
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito
@@ -106,19 +112,19 @@ class CharacterShould {
 
     @Test
     fun `Have range of two if it is melee fighter`() {
-        val iFighter = Mockito.mock(IFighter::class.java)
+        val iFighter = Mockito.mock(MeleeFighter()::class.java)
         Mockito.`when`(iFighter.initialRange()).thenReturn(2)
 
-        character.setTypeOfFighter(iFighter)
+        character.setClass(iFighter)
         assertThat(character.getRanged()).isEqualTo(2)
     }
 
     @Test
     fun `Have range of twenty if it is ranged fighter`() {
-        val iFighter = Mockito.mock(IFighter::class.java)
+        val iFighter = Mockito.mock(RangedFighter::class.java)
         Mockito.`when`(iFighter.initialRange()).thenReturn(20)
 
-        character.setTypeOfFighter(iFighter)
+        character.setClass(iFighter)
         assertThat(character.getRanged()).isEqualTo(20)
     }
 
@@ -126,13 +132,13 @@ class CharacterShould {
     fun `Deal damage if target is in range`() {
         characterTwo.position = 20
         character.position = 0
-        val rangedFighter = Mockito.mock(IFighter::class.java)
+        val rangedFighter = Mockito.mock(RangedFighter::class.java)
         Mockito.`when`(rangedFighter.initialRange()).thenReturn(20)
-        val meleeFighter = Mockito.mock(IFighter::class.java)
+        val meleeFighter = Mockito.mock(MeleeFighter::class.java)
         Mockito.`when`(meleeFighter.initialRange()).thenReturn(2)
 
-        character.setTypeOfFighter(rangedFighter)
-        characterTwo.setTypeOfFighter(meleeFighter)
+        character.setClass(rangedFighter)
+        characterTwo.setClass(meleeFighter)
 
         character.dealDamage(characterTwo, 200)
         characterTwo.dealDamage(character, 200)
@@ -145,9 +151,9 @@ class CharacterShould {
     fun `Not deal damage if target is not in range`() {
         characterTwo.position = 20
         character.position = 0
-        val iFighter = Mockito.mock(IFighter::class.java)
+        val iFighter = Mockito.mock(MeleeFighter::class.java)
         Mockito.`when`(iFighter.initialRange()).thenReturn(2)
-        character.setTypeOfFighter(iFighter)
+        character.setClass(iFighter)
 
         character.dealDamage(characterTwo, 200)
 
@@ -190,7 +196,7 @@ class CharacterShould {
         character.joinFaction(faction)
         characterTwo.joinFaction(faction)
 
-        val enemyCharacter = Classes.Character()
+        val enemyCharacter = Character()
 
         enemyCharacter.dealDamage(characterTwo, 200)
         character.heal(characterTwo, 100)
@@ -206,5 +212,49 @@ class CharacterShould {
         character.dealDamage(tree, 2000)
 
         verify(tree).receiveDamage(any(), any())
+    }
+
+    @Test
+    fun `Deal damage to animal`() { // redundante con el test deal damage a un Character no?
+        val animal = Character()
+        animal.setClass(AnimalFighter())
+        character.dealDamage(animal, 200)
+
+        assertThat(animal.health).isEqualTo(800)
+    }
+
+    @Test
+    fun `Pet animal`() {
+        val animalClass = mock<AnimalFighter>()
+        val explorerClass = mock<Explorer>()
+
+        val animal = Character()
+        animal.setClass(animalClass)
+        character.setClass(explorerClass)
+
+        character.pet(animal)
+
+        verify(animalClass).petBy(anyVararg(), anyVararg())
+    }
+
+    @Test
+    fun `Receive damage from animal that not are in the same faction`() {
+        val animal = Mockito.mock(Character::class.java)
+        var factions: MutableList<IFaction> = mutableListOf()
+        factions.add(ScarFaceFaction())
+        //Mockito.`when`(animal.getFactions()).thenReturn(factions)
+        Mockito.`when`(animal.isCharacterAllie(any())).thenReturn(false)
+
+        //val animal : AnimalFighter = mock<AnimalFighter>()
+        //whenever(animal.getFactions()).thenReturn(factions)
+        //whenever(animal.isCharacterAllie(character)).thenReturn(false)
+
+
+        character.setClass(Explorer())
+        character.joinFaction(ScarFaceFaction())
+
+        character.pet(animal)
+
+        assertThat(character.health).isEqualTo(500)
     }
 }

@@ -1,6 +1,6 @@
-package Classes
+package Classes.Factions
 
-class ScarFaceFaction : IFaction {
+open class ScarFaceFaction : IFaction {
     override fun getFactionName(): String {
         TODO("Not yet implemented")
     }

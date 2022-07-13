@@ -1,4 +1,4 @@
-package Classes
+package Classes.CharacterClasses
 
 interface IFighter {
     fun initialRange(): Int

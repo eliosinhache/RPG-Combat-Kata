@@ -1,6 +1,8 @@
-package Classes
+package Classes.CharacterClasses
 
-class MeleeFighter : IFighter {
+import Classes.CharacterClass
+
+open class MeleeFighter : CharacterClass(), IFighter {
     override fun initialRange(): Int {
         return 2
     }
