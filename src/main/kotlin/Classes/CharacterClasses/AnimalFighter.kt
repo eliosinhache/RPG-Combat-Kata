@@ -13,8 +13,4 @@ open class AnimalFighter : CharacterClass(), IFighter, IAnimal {
     override fun initialRange(): Int {
         TODO("Not yet implemented")
     }
-
-    override fun getTypeOfFighter(): String {
-        TODO("Not yet implemented")
-    }
 }

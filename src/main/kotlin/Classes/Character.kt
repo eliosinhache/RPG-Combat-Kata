@@ -13,10 +13,13 @@ open class Character : ITargetActions {
     var alive = true
     var level = 1
     var health = 1000
-    //lateinit var characterClass : IFighter
     private var characterClass : CharacterClass? = null
     private var range = 1
-    private var factionGroup: IFactionGroup = FactionGroup() //MutableList<IFaction> = mutableListOf()
+    private var factionGroup: IFactionGroup //MutableList<IFaction> = mutableListOf()
+
+    constructor(factionGroup: IFactionGroup) {
+        this.factionGroup = factionGroup
+    }
 
     fun dealDamage(target: ITargetActions, amount: Int) {
         if (target == this) return

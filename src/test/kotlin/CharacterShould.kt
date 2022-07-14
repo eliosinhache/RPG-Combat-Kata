@@ -13,8 +13,11 @@ import org.mockito.kotlin.*
 class CharacterShould {
     private val maxHealth = 1000
     private val minHealth = 0
-    private val character = Character()
-    private val characterTwo = Character()
+    private val factionGroupCharacter01 = mock<IFactionGroup>()
+    private val factionGroupCharacter02 = mock<IFactionGroup>()
+    private val character = Character(factionGroupCharacter01)
+    private val characterTwo = Character(factionGroupCharacter02)
+    private val animal = Character(factionGroupCharacter02)
 
     @Test
     fun  `Start with max Health` () {
@@ -180,10 +183,8 @@ class CharacterShould {
     }
 
     @Test
-    fun `Not deal damage yo allies`() {
-        val faction = Mockito.mock(IFaction::class.java)
-        character.joinFaction(faction)
-        characterTwo.joinFaction(faction)
+    fun `Not deal damage to allies`() {
+        whenever(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(true)
 
         character.dealDamage(characterTwo, 200)
 
@@ -192,12 +193,12 @@ class CharacterShould {
 
     @Test
     fun `Heal allies`() {
-        val faction = Mockito.mock(IFaction::class.java)
-        character.joinFaction(faction)
-        characterTwo.joinFaction(faction)
+        Mockito.`when`(factionGroupCharacter01.isCharacterAllie(any())).thenReturn(true)
+        Mockito.`when`(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(false)
 
-        val enemyCharacter = Character()
-
+        val factionGroupEnemy = Mockito.mock(IFactionGroup::class.java)
+        Mockito.`when`(factionGroupEnemy.isCharacterAllie(any())).thenReturn(false)
+        val enemyCharacter = Character(factionGroupEnemy)
         enemyCharacter.dealDamage(characterTwo, 200)
         character.heal(characterTwo, 100)
 
@@ -215,46 +216,15 @@ class CharacterShould {
     }
 
     @Test
-    fun `Deal damage to animal`() { // redundante con el test deal damage a un Character no?
-        val animal = Character()
-        animal.setClass(AnimalFighter())
-        character.dealDamage(animal, 200)
-
-        assertThat(animal.health).isEqualTo(800)
-    }
-
-    @Test
-    fun `Pet animal`() {
+    fun `Pet animal character`() {
         val animalClass = mock<AnimalFighter>()
         val explorerClass = mock<Explorer>()
 
-        val animal = Character()
         animal.setClass(animalClass)
         character.setClass(explorerClass)
 
         character.pet(animal)
 
         verify(animalClass).petBy(anyVararg(), anyVararg())
-    }
-
-    @Test
-    fun `Receive damage from animal that not are in the same faction`() {
-        val animal = Mockito.mock(Character::class.java)
-        var factions: MutableList<IFaction> = mutableListOf()
-        factions.add(ScarFaceFaction())
-        //Mockito.`when`(animal.getFactions()).thenReturn(factions)
-        Mockito.`when`(animal.isCharacterAllie(any())).thenReturn(false)
-
-        //val animal : AnimalFighter = mock<AnimalFighter>()
-        //whenever(animal.getFactions()).thenReturn(factions)
-        //whenever(animal.isCharacterAllie(character)).thenReturn(false)
-
-
-        character.setClass(Explorer())
-        character.joinFaction(ScarFaceFaction())
-
-        character.pet(animal)
-
-        assertThat(character.health).isEqualTo(500)
     }
 }
