@@ -1,9 +1,10 @@
 package Classes
 
 import Classes.CharacterClasses.AnimalFighter
+import Classes.CharacterClasses.CharacterClass
 import Classes.CharacterClasses.Explorer
-import Classes.CharacterClasses.IAnimal
 import Classes.Factions.IFaction
+import Classes.Factions.IFactionGroup
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

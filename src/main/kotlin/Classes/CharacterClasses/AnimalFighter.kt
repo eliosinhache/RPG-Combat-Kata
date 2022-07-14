@@ -1,7 +1,6 @@
 package Classes.CharacterClasses
 
 import Classes.Character
-import Classes.CharacterClass
 
 open class AnimalFighter : CharacterClass(), IFighter, IAnimal {
 

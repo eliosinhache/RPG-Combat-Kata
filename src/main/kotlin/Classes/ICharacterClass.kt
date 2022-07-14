@@ -1,4 +1,0 @@
-package Classes
-
-interface ICharacterClass {
-}

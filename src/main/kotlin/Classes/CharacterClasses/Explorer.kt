@@ -1,6 +1,5 @@
 package Classes.CharacterClasses
 
-import Classes.CharacterClass
 import Classes.ICharacterInteraction
 
 open class Explorer: CharacterClass(), ICharacterInteraction {

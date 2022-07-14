@@ -1,6 +1,6 @@
-package Classes
+package Classes.Factions
 
-import Classes.Factions.IFaction
+import Classes.Character
 
 interface IFactionGroup {
     fun isCharacterAllie(character: Character): Boolean
