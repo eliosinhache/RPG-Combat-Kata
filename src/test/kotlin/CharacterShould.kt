@@ -1,4 +1,6 @@
 import Classes.*
+import Classes.Actions.DealDamageCommand
+import Classes.Actions.Invoker
 import Classes.CharacterClasses.AnimalFighter
 import Classes.CharacterClasses.Explorer
 import Classes.CharacterClasses.MeleeFighter
@@ -27,6 +29,7 @@ class CharacterShould {
     private val rangedClass = mock<RangedFighter>()
     private val meleeClass =  mock<MeleeFighter>()
     private val explorerClass =  mock<Explorer>()
+    private lateinit var invoker : Invoker
 
     @BeforeEach
     fun  `SetUp` () {
@@ -34,6 +37,7 @@ class CharacterShould {
         rangedCharacter = Character(rangedClass, factionGroupCharacter02)
         explorerCharacter = Character( explorerClass, factionGroupCharacter01)
         animalCharacter = Character( animalClass, factionGroupCharacter02)
+        invoker = Invoker()
     }
 
     @Test
@@ -53,14 +57,16 @@ class CharacterShould {
 
     @Test
     fun `Deal damage to other character`() {
-        rangedCharacter.dealDamage(meleeCharacter, 100)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
 
         assertThat(meleeCharacter.health).isEqualTo(900)
     }
 
     @Test
     fun `Die when damage received exceeds current health`() {
-        rangedCharacter.dealDamage(meleeCharacter, 1200)
+        //rangedCharacter.dealDamage(meleeCharacter, 1200)
+
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 1200)
 
         assertThat(meleeCharacter.health).isEqualTo(minHealth)
         assertThat(meleeCharacter.alive).isFalse
@@ -68,7 +74,8 @@ class CharacterShould {
 
     @Test
     fun `Not heal other character`() {
-        rangedCharacter.dealDamage(meleeCharacter, 300)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 300)
+        //rangedCharacter.dealDamage(meleeCharacter, 300)
         rangedCharacter.heal(meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(700)
@@ -76,7 +83,8 @@ class CharacterShould {
 
     @Test
     fun `Heal itself`() {
-        rangedCharacter.dealDamage(meleeCharacter, 300)
+        //rangedCharacter.dealDamage(meleeCharacter, 300)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 300)
         meleeCharacter.heal(meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(900)
@@ -84,7 +92,8 @@ class CharacterShould {
 
     @Test
     fun `Not healed if is dead`() {
-        rangedCharacter.dealDamage(meleeCharacter, maxHealth)
+//        rangedCharacter.dealDamage(meleeCharacter, maxHealth)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, maxHealth)
         rangedCharacter.heal(meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(0)
@@ -92,7 +101,8 @@ class CharacterShould {
 
     @Test
     fun `Not raise health above max health`() {
-        rangedCharacter.dealDamage(meleeCharacter, 100)
+//        rangedCharacter.dealDamage(meleeCharacter, 100)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
         meleeCharacter.heal(meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(maxHealth)
@@ -100,8 +110,8 @@ class CharacterShould {
 
     @Test
     fun `Not deal damage to itself`() {
-        meleeCharacter.dealDamage(meleeCharacter, 100)
-
+//        meleeCharacter.dealDamage(meleeCharacter, 100)
+        dealDamageFromTo(meleeCharacter, meleeCharacter, 100)
         assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
 
@@ -110,7 +120,8 @@ class CharacterShould {
         meleeCharacter.level = 10
         rangedCharacter.level = 5
 
-        rangedCharacter.dealDamage(meleeCharacter, 100)
+//        rangedCharacter.dealDamage(meleeCharacter, 100)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
 
         assertThat(meleeCharacter.health).isEqualTo(950)
     }
@@ -120,7 +131,7 @@ class CharacterShould {
         meleeCharacter.level = 5
         rangedCharacter.level = 10
 
-        rangedCharacter.dealDamage(meleeCharacter, 100)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
 
         assertThat(meleeCharacter.health).isEqualTo(850)
     }
@@ -151,7 +162,8 @@ class CharacterShould {
 
         Mockito.`when`(rangedClass.getRange()).thenReturn(20)
 
-        rangedCharacter.dealDamage(meleeCharacter, 200)
+        dealDamageFromTo(rangedCharacter, meleeCharacter, 200)
+
 
         assertThat(meleeCharacter.health).isEqualTo(800)
     }
@@ -163,7 +175,7 @@ class CharacterShould {
 
         Mockito.`when`(meleeClass.getRange()).thenReturn(2)
 
-        meleeCharacter.dealDamage(rangedCharacter, 200)
+        dealDamageFromTo(meleeCharacter, rangedCharacter, 200)
 
         assertThat(rangedCharacter.health).isEqualTo(1000)
     }
@@ -190,7 +202,7 @@ class CharacterShould {
     fun `Not deal damage to allies`() {
         whenever(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(true)
 
-        meleeCharacter.dealDamage(rangedCharacter, 200)
+        dealDamageFromTo(meleeCharacter, rangedCharacter, 200)
 
         assertThat(rangedCharacter.health).isEqualTo(maxHealth)
     }
@@ -203,7 +215,8 @@ class CharacterShould {
         val factionGroupEnemy = Mockito.mock(IFactionGroup::class.java)
         Mockito.`when`(factionGroupEnemy.isCharacterAllie(any())).thenReturn(false)
         val enemyCharacter = Character(rangedClass, factionGroupEnemy)
-        enemyCharacter.dealDamage(rangedCharacter, 200)
+
+        dealDamageFromTo(enemyCharacter, rangedCharacter, 200)
         meleeCharacter.heal(rangedCharacter, 100)
 
         assertThat(rangedCharacter.health).isEqualTo(900)
@@ -213,23 +226,29 @@ class CharacterShould {
     fun `Deal damage to props`() {
         whenever(prop.getTargetPosition()).thenReturn(1)
 
-        meleeCharacter.dealDamage(prop, 2000)
+        dealDamageFromTo(meleeCharacter, prop, 2000)
 
         verify(prop).receiveDamage(any(), any())
     }
 
-    @Test
-    fun `Pet animal class character if is explorer class`() {
-        explorerCharacter.pet(animalCharacter)
+//    @Test
+//    fun `Pet animal class character if is explorer class`() {
+//        explorerCharacter.pet(animalCharacter)
+//
+//        verify(animalClass).DomesticateBy(anyVararg(), anyVararg())
+//    }
+//
+//
+//    @Test
+//    fun `Not Pet animal class character if is explorer class`() {
+//        meleeCharacter.pet(animalCharacter)
+//
+//        verify(animalClass, never()).DomesticateBy(anyVararg(), anyVararg())
+//    }
 
-        verify(animalClass).DomesticateBy(anyVararg(), anyVararg())
-    }
-
-
-    @Test
-    fun `Not Pet animal class character if is explorer class`() {
-        meleeCharacter.pet(animalCharacter)
-
-        verify(animalClass, never()).DomesticateBy(anyVararg(), anyVararg())
+    private fun dealDamageFromTo(attacker: Classes.Character, target: Classes.ITargetActions, amount: Int) {
+        val dealDamage = DealDamageCommand(attacker, target, amount)
+        invoker.addCommand(dealDamage)
+        invoker.executeCommands()
     }
 }

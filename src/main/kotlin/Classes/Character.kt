@@ -9,18 +9,12 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class Character (private val characterClass: CharacterClass, private var factionGroup: IFactionGroup) : ITargetActions {
+open class Character (val characterClass: CharacterClass, private var factionGroup: IFactionGroup) : ITargetActions {
     var position= 1
     var alive = true
     var level = 1
     var health = 1000
 
-
-    fun dealDamage(target: ITargetActions, amount: Int) {
-        if (target == this) return
-        if (abs(target.getTargetPosition() - this.position) > characterClass.getRange()) return
-        target.receiveDamage(this, amount)
-    }
 
     fun isCharacterAllie(character: Character): Boolean {
         return factionGroup.isCharacterAllie(character)
