@@ -12,185 +12,187 @@ import org.mockito.Mockito
 import org.mockito.kotlin.*
 
 class CharacterShould {
+    private lateinit var meleeCharacter : Character
+    private lateinit var rangedCharacter : Character
+    private lateinit var animalCharacter : Character
+    private lateinit var explorerCharacter : Character
     private val maxHealth = 1000
     private val minHealth = 0
+    private val firstLevel = 1
     private val factionGroupCharacter01 = mock<IFactionGroup>()
     private val factionGroupCharacter02 = mock<IFactionGroup>()
-    private val character = Character(factionGroupCharacter01)
-    private val characterTwo = Character(factionGroupCharacter02)
-    private val animal = Character(factionGroupCharacter02)
     private val prop = mock<Prop>()
-    private val animalClass = mock<AnimalFighter>()
     private val faction = mock<IFaction>()
-    private val rangedFighter = mock<RangedFighter>()
-    private val meleeFighter =  mock<MeleeFighter>()
+    private val animalClass = mock<AnimalFighter>()
+    private val rangedClass = mock<RangedFighter>()
+    private val meleeClass =  mock<MeleeFighter>()
+    private val explorerClass =  mock<Explorer>()
+
+    @BeforeEach
+    fun  `SetUp` () {
+        meleeCharacter = Character( meleeClass, factionGroupCharacter01)
+        rangedCharacter = Character(rangedClass, factionGroupCharacter02)
+        explorerCharacter = Character( explorerClass, factionGroupCharacter01)
+        animalCharacter = Character( animalClass, factionGroupCharacter02)
+    }
 
     @Test
     fun  `Start with max Health` () {
-        assertThat(character.health).isEqualTo(maxHealth)
+        assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Start with first Level` () {
-        assertThat(character.level).isEqualTo(1)
+        assertThat(meleeCharacter.level).isEqualTo(firstLevel)
     }
 
     @Test
     fun `Start Alive` () {
-        assertThat(character.alive).isTrue
+        assertThat(meleeCharacter.alive).isTrue
     }
 
     @Test
     fun `Deal damage to other character`() {
-        characterTwo.dealDamage(character, 100)
+        rangedCharacter.dealDamage(meleeCharacter, 100)
 
-        assertThat(character.health).isEqualTo(900)
+        assertThat(meleeCharacter.health).isEqualTo(900)
     }
 
     @Test
     fun `Die when damage received exceeds current health`() {
-        characterTwo.dealDamage(character, 1200)
+        rangedCharacter.dealDamage(meleeCharacter, 1200)
 
-        assertThat(character.health).isEqualTo(minHealth)
-        assertThat(character.alive).isFalse
+        assertThat(meleeCharacter.health).isEqualTo(minHealth)
+        assertThat(meleeCharacter.alive).isFalse
     }
 
     @Test
     fun `Not heal other character`() {
-        characterTwo.dealDamage(character, 300)
-        characterTwo.heal(character, 200)
+        rangedCharacter.dealDamage(meleeCharacter, 300)
+        rangedCharacter.heal(meleeCharacter, 200)
 
-        assertThat(character.health).isEqualTo(700)
+        assertThat(meleeCharacter.health).isEqualTo(700)
     }
 
     @Test
     fun `Heal itself`() {
-        characterTwo.dealDamage(character, 300)
-        character.heal(character, 200)
+        rangedCharacter.dealDamage(meleeCharacter, 300)
+        meleeCharacter.heal(meleeCharacter, 200)
 
-        assertThat(character.health).isEqualTo(900)
+        assertThat(meleeCharacter.health).isEqualTo(900)
     }
 
     @Test
     fun `Not healed if is dead`() {
-        characterTwo.dealDamage(character, maxHealth)
-        characterTwo.heal(character, 200)
+        rangedCharacter.dealDamage(meleeCharacter, maxHealth)
+        rangedCharacter.heal(meleeCharacter, 200)
 
-        assertThat(character.health).isEqualTo(0)
+        assertThat(meleeCharacter.health).isEqualTo(0)
     }
 
     @Test
     fun `Not raise health above max health`() {
-        characterTwo.dealDamage(character, 100)
-        character.heal(character, 200)
+        rangedCharacter.dealDamage(meleeCharacter, 100)
+        meleeCharacter.heal(meleeCharacter, 200)
 
-        assertThat(character.health).isEqualTo(maxHealth)
+        assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Not deal damage to itself`() {
-        character.dealDamage(character, 100)
+        meleeCharacter.dealDamage(meleeCharacter, 100)
 
-        assertThat(character.health).isEqualTo(maxHealth)
+        assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Deal 50% less damage if target are 5 levels above it`() {
-        character.level = 10
-        characterTwo.level = 5
+        meleeCharacter.level = 10
+        rangedCharacter.level = 5
 
-        characterTwo.dealDamage(character, 100)
+        rangedCharacter.dealDamage(meleeCharacter, 100)
 
-        assertThat(character.health).isEqualTo(950)
+        assertThat(meleeCharacter.health).isEqualTo(950)
     }
 
     @Test
     fun `Deal 50% more damage if target are 5 levels below it`() {
-        character.level = 5
-        characterTwo.level = 10
+        meleeCharacter.level = 5
+        rangedCharacter.level = 10
 
-        characterTwo.dealDamage(character, 100)
+        rangedCharacter.dealDamage(meleeCharacter, 100)
 
-        assertThat(character.health).isEqualTo(850)
+        assertThat(meleeCharacter.health).isEqualTo(850)
     }
 
     @Test
     fun `Have max range`() {
-        assertThat(character.getRanged()).isNotNull
+        assertThat(meleeCharacter.getRanged()).isNotNull
     }
 
     @Test
     fun `Have range of two if it is melee fighter`() {
-        Mockito.`when`(meleeFighter.initialRange()).thenReturn(2)
+        Mockito.`when`(meleeClass.getRange()).thenReturn(2)
 
-        character.setClass(meleeFighter)
-        assertThat(character.getRanged()).isEqualTo(2)
+        assertThat(meleeCharacter.getRanged()).isEqualTo(2)
     }
 
     @Test
     fun `Have range of twenty if it is ranged fighter`() {
-        Mockito.`when`(rangedFighter.initialRange()).thenReturn(20)
+        Mockito.`when`(rangedClass.getRange()).thenReturn(20)
 
-        character.setClass(rangedFighter)
-        assertThat(character.getRanged()).isEqualTo(20)
+        assertThat(rangedCharacter.getRanged()).isEqualTo(20)
     }
 
     @Test
     fun `Deal damage if target is in range`() {
-        characterTwo.position = 20
-        character.position = 0
+        rangedCharacter.position = 20
+        meleeCharacter.position = 0
 
-        Mockito.`when`(rangedFighter.initialRange()).thenReturn(20)
-        Mockito.`when`(meleeFighter.initialRange()).thenReturn(2)
+        Mockito.`when`(rangedClass.getRange()).thenReturn(20)
 
-        character.setClass(rangedFighter)
-        characterTwo.setClass(meleeFighter)
+        rangedCharacter.dealDamage(meleeCharacter, 200)
 
-        character.dealDamage(characterTwo, 200)
-        characterTwo.dealDamage(character, 200)
-
-        assertThat(characterTwo.health).isEqualTo(800)
-        assertThat(character.health).isEqualTo(maxHealth)
+        assertThat(meleeCharacter.health).isEqualTo(800)
     }
 
     @Test
     fun `Not deal damage if target is not in range`() {
-        characterTwo.position = 20
-        character.position = 0
+        rangedCharacter.position = 20
+        meleeCharacter.position = 0
 
-        Mockito.`when`(meleeFighter.initialRange()).thenReturn(2)
-        character.setClass(meleeFighter)
+        Mockito.`when`(meleeClass.getRange()).thenReturn(2)
 
-        character.dealDamage(characterTwo, 200)
+        meleeCharacter.dealDamage(rangedCharacter, 200)
 
-        assertThat(characterTwo.health).isEqualTo(1000)
+        assertThat(rangedCharacter.health).isEqualTo(1000)
     }
 
     @Test
     fun `Start without factions`() {
-        assertThat(character.getFactions().isEmpty()).isTrue
+        assertThat(meleeCharacter.getFactions().isEmpty()).isTrue
     }
 
     @Test
     fun `Join to one or more factions`() {
-        character.joinFaction(faction)
-        assertThat(character.getFactions()).isNotNull
+        meleeCharacter.joinFaction(faction)
+        assertThat(meleeCharacter.getFactions()).isNotNull
     }
     @Test
     fun `Leave one or more factions`() {
-        character.joinFaction(faction)
-        character.leaveFaction(faction)
+        meleeCharacter.joinFaction(faction)
+        meleeCharacter.leaveFaction(faction)
 
-        assertThat(character.getFactions().isEmpty()).isTrue
+        assertThat(meleeCharacter.getFactions().isEmpty()).isTrue
     }
 
     @Test
     fun `Not deal damage to allies`() {
         whenever(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(true)
 
-        character.dealDamage(characterTwo, 200)
+        meleeCharacter.dealDamage(rangedCharacter, 200)
 
-        assertThat(characterTwo.health).isEqualTo(maxHealth)
+        assertThat(rangedCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
@@ -200,44 +202,34 @@ class CharacterShould {
 
         val factionGroupEnemy = Mockito.mock(IFactionGroup::class.java)
         Mockito.`when`(factionGroupEnemy.isCharacterAllie(any())).thenReturn(false)
-        val enemyCharacter = Character(factionGroupEnemy)
-        enemyCharacter.dealDamage(characterTwo, 200)
-        character.heal(characterTwo, 100)
+        val enemyCharacter = Character(rangedClass, factionGroupEnemy)
+        enemyCharacter.dealDamage(rangedCharacter, 200)
+        meleeCharacter.heal(rangedCharacter, 100)
 
-        assertThat(characterTwo.health).isEqualTo(900)
+        assertThat(rangedCharacter.health).isEqualTo(900)
     }
 
     @Test
     fun `Deal damage to props`() {
         whenever(prop.getTargetPosition()).thenReturn(1)
 
-        character.dealDamage(prop, 2000)
+        meleeCharacter.dealDamage(prop, 2000)
 
         verify(prop).receiveDamage(any(), any())
     }
 
     @Test
     fun `Pet animal class character if is explorer class`() {
-        val explorerClass = mock<Explorer>()
+        explorerCharacter.pet(animalCharacter)
 
-        animal.setClass(animalClass)
-        character.setClass(explorerClass)
-
-        character.pet(animal)
-
-        verify(animalClass).petBy(anyVararg(), anyVararg())
+        verify(animalClass).DomesticateBy(anyVararg(), anyVararg())
     }
 
 
     @Test
     fun `Not Pet animal class character if is explorer class`() {
-        val notExplorerClass = mock<RangedFighter>()
+        meleeCharacter.pet(animalCharacter)
 
-        animal.setClass(animalClass)
-        character.setClass(notExplorerClass)
-
-        character.pet(animal)
-
-        verify(animalClass, never()).petBy(anyVararg(), anyVararg())
+        verify(animalClass, never()).DomesticateBy(anyVararg(), anyVararg())
     }
 }

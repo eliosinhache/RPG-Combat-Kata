@@ -9,22 +9,16 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class Character : ITargetActions {
+open class Character (private val characterClass: CharacterClass, private var factionGroup: IFactionGroup) : ITargetActions {
     var position= 1
     var alive = true
     var level = 1
     var health = 1000
-    private var characterClass : CharacterClass? = null
-    private var range = 1
-    private var factionGroup: IFactionGroup //MutableList<IFaction> = mutableListOf()
 
-    constructor(factionGroup: IFactionGroup) {
-        this.factionGroup = factionGroup
-    }
 
     fun dealDamage(target: ITargetActions, amount: Int) {
         if (target == this) return
-        if (abs(target.getTargetPosition() - this.position) > range) return
+        if (abs(target.getTargetPosition() - this.position) > characterClass.getRange()) return
         target.receiveDamage(this, amount)
     }
 
@@ -55,13 +49,8 @@ open class Character : ITargetActions {
         health = min(1000, health + amount)
     }
 
-    fun setClass(typeOfCharacter: CharacterClass) {
-        characterClass = typeOfCharacter
-        range = typeOfCharacter.initialRange()
-    }
-
     fun getRanged(): Int {
-        return range
+        return characterClass.getRange()
     }
 
     fun getFactions(): List<IFaction> {
@@ -78,6 +67,6 @@ open class Character : ITargetActions {
 
     fun pet(animal: Character) {
         if (characterClass !is Explorer) { return }
-        (animal.characterClass as AnimalFighter).petBy(this, animal)
+        (animal.characterClass as AnimalFighter).DomesticateBy(this, animal)
     }
 }

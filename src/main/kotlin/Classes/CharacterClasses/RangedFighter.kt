@@ -1,7 +1,7 @@
 package Classes.CharacterClasses
 
 open class RangedFighter : CharacterClass(), IFighter {
-    override fun initialRange(): Int {
+    override fun getRange(): Int {
         return 20
     }
 }

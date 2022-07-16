@@ -2,6 +2,7 @@ import Classes.Prop
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import kotlin.test.assertTrue
 
 class PropShould {
 
@@ -12,7 +13,7 @@ class PropShould {
 
         tree.receiveDamage(character, 500)
 
-        assertThat(tree.heal).isEqualTo(1500)
+        assertThat(tree.health).isEqualTo(1500)
     }
 
     @Test
@@ -22,6 +23,6 @@ class PropShould {
 
         tree.receiveDamage(character, 2000)
 
-        assertThat(tree.destroyed).isTrue
+        assertTrue(tree.isDestroyed())
     }
 }
