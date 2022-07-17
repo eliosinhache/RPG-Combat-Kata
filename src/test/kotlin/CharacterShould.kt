@@ -1,5 +1,6 @@
 import Classes.*
 import Classes.Actions.DealDamageCommand
+import Classes.Actions.HealCommand
 import Classes.Actions.Invoker
 import Classes.CharacterClasses.AnimalFighter
 import Classes.CharacterClasses.Explorer
@@ -7,6 +8,7 @@ import Classes.CharacterClasses.MeleeFighter
 import Classes.CharacterClasses.RangedFighter
 import Classes.Factions.IFaction
 import Classes.Factions.IFactionGroup
+import Services.AllyChecker
 import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +31,7 @@ class CharacterShould {
     private val rangedClass = mock<RangedFighter>()
     private val meleeClass =  mock<MeleeFighter>()
     private val explorerClass =  mock<Explorer>()
+    private lateinit var allyCheckerService : AllyChecker
     private lateinit var invoker : Invoker
 
     @BeforeEach
@@ -38,6 +41,7 @@ class CharacterShould {
         explorerCharacter = Character( explorerClass, factionGroupCharacter01)
         animalCharacter = Character( animalClass, factionGroupCharacter02)
         invoker = Invoker()
+        allyCheckerService = mock<AllyChecker>()
     }
 
     @Test
@@ -73,44 +77,33 @@ class CharacterShould {
     }
 
     @Test
-    fun `Not heal other character`() {
-        dealDamageFromTo(rangedCharacter, meleeCharacter, 300)
-        //rangedCharacter.dealDamage(meleeCharacter, 300)
-        rangedCharacter.heal(meleeCharacter, 200)
-
-        assertThat(meleeCharacter.health).isEqualTo(700)
-    }
-
-    @Test
     fun `Heal itself`() {
         //rangedCharacter.dealDamage(meleeCharacter, 300)
         dealDamageFromTo(rangedCharacter, meleeCharacter, 300)
-        meleeCharacter.heal(meleeCharacter, 200)
+        healFromTo(meleeCharacter, meleeCharacter, 200)
+//        meleeCharacter.heal(meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(900)
     }
 
     @Test
     fun `Not healed if is dead`() {
-//        rangedCharacter.dealDamage(meleeCharacter, maxHealth)
         dealDamageFromTo(rangedCharacter, meleeCharacter, maxHealth)
-        rangedCharacter.heal(meleeCharacter, 200)
+        healFromTo(rangedCharacter, meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(0)
     }
 
     @Test
     fun `Not raise health above max health`() {
-//        rangedCharacter.dealDamage(meleeCharacter, 100)
         dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
-        meleeCharacter.heal(meleeCharacter, 200)
+        healFromTo(meleeCharacter, meleeCharacter, 200)
 
         assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Not deal damage to itself`() {
-//        meleeCharacter.dealDamage(meleeCharacter, 100)
         dealDamageFromTo(meleeCharacter, meleeCharacter, 100)
         assertThat(meleeCharacter.health).isEqualTo(maxHealth)
     }
@@ -120,7 +113,6 @@ class CharacterShould {
         meleeCharacter.level = 10
         rangedCharacter.level = 5
 
-//        rangedCharacter.dealDamage(meleeCharacter, 100)
         dealDamageFromTo(rangedCharacter, meleeCharacter, 100)
 
         assertThat(meleeCharacter.health).isEqualTo(950)
@@ -200,36 +192,42 @@ class CharacterShould {
 
     @Test
     fun `Not deal damage to allies`() {
-        whenever(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(true)
-
-        dealDamageFromTo(meleeCharacter, rangedCharacter, 200)
+        whenever(allyCheckerService.areAlly(anyVararg(), anyVararg())).thenReturn(true)
+        dealDamageFromTo(meleeCharacter, rangedCharacter, 200, allyCheckerService)
 
         assertThat(rangedCharacter.health).isEqualTo(maxHealth)
     }
 
     @Test
     fun `Heal allies`() {
-        Mockito.`when`(factionGroupCharacter02.isCharacterAllie(any())).thenReturn(false)
-        Mockito.`when`(factionGroupCharacter01.isCharacterAllie(any())).thenReturn(true)
-
         val factionGroupEnemy = Mockito.mock(IFactionGroup::class.java)
-        Mockito.`when`(factionGroupEnemy.isCharacterAllie(any())).thenReturn(false)
+        val allyCheckerEnemy = mock<AllyChecker>()
         val enemyCharacter = Character(rangedClass, factionGroupEnemy)
 
-        dealDamageFromTo(enemyCharacter, rangedCharacter, 200)
-        meleeCharacter.heal(rangedCharacter, 100)
+        whenever(allyCheckerEnemy.areAlly(any(), any())).thenReturn(false)
+        whenever(allyCheckerService.areAlly(any(), any())).thenReturn(true)
+
+        dealDamageFromTo(enemyCharacter, rangedCharacter, 200, allyCheckerEnemy)
+        healFromTo(meleeCharacter, rangedCharacter, 100, allyCheckerService)
 
         assertThat(rangedCharacter.health).isEqualTo(900)
     }
 
-    @Test
-    fun `Deal damage to props`() {
-        whenever(prop.getTargetPosition()).thenReturn(1)
-
-        dealDamageFromTo(meleeCharacter, prop, 2000)
-
-        verify(prop).receiveDamage(any(), any())
+    private fun healFromTo(character: Character, target: Character, amount: Int, allyChecker: AllyChecker = allyCheckerService) {
+        val healCommand = HealCommand(character, target, amount, allyChecker)
+        val invoker = Invoker()
+        invoker.addCommand(healCommand)
+        invoker.executeCommands()
     }
+
+//    @Test
+//    fun `Deal damage to props`() {
+//        whenever(prop.getTargetPosition()).thenReturn(1)
+//
+//        dealDamageFromTo(meleeCharacter, prop, 2000)
+//
+//        verify(prop).receiveDamage(any(), any())
+//    }
 
 //    @Test
 //    fun `Pet animal class character if is explorer class`() {
@@ -246,8 +244,8 @@ class CharacterShould {
 //        verify(animalClass, never()).DomesticateBy(anyVararg(), anyVararg())
 //    }
 
-    private fun dealDamageFromTo(attacker: Classes.Character, target: Classes.ITargetActions, amount: Int) {
-        val dealDamage = DealDamageCommand(attacker, target, amount)
+    private fun dealDamageFromTo(attacker: Classes.Character, target: Classes.Character, amount: Int, allyChecker: AllyChecker = allyCheckerService) {
+        val dealDamage = DealDamageCommand(attacker, target, amount, allyChecker)
         invoker.addCommand(dealDamage)
         invoker.executeCommands()
     }

@@ -5,13 +5,6 @@ import Classes.Character
 class FactionGroup : IFactionGroup {
     private val factions : MutableList<IFaction> = mutableListOf()
 
-    override fun isCharacterAllie(character: Character): Boolean {
-        character.getFactions().forEach {
-            if (getAllFactions().contains(it)) return true
-        }
-        return false
-    }
-
     override fun getAllFactions(): List<IFaction> {
         return factions
     }

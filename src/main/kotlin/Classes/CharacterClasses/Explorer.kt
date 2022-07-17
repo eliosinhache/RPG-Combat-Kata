@@ -1,8 +1,6 @@
 package Classes.CharacterClasses
 
-import Classes.ICharacterInteraction
-
-open class Explorer: CharacterClass(), ICharacterInteraction {
+open class Explorer: CharacterClass() {
     override fun getRange(): Int {
         return 3
     }

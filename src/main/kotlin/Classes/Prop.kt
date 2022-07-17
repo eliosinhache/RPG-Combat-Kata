@@ -2,14 +2,14 @@ package Classes
 
 import kotlin.math.max
 
-open class Prop (var health: Int, var position: Int): ITargetActions {
+open class Prop (var health: Int, var position: Int) {
 
-    override fun receiveDamage(attacker: Character, amount: Int) {
+    fun receiveDamage(attacker: Character, amount: Int) {
         if (health == 0) return
         health = max(0, health - amount)
     }
 
-    override fun getTargetPosition(): Int {
+    fun getTargetPosition(): Int {
         return position
     }
 
